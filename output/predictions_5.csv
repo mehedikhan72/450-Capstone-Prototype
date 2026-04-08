@@ -1,0 +1,6 @@
+flow_id,src_ip,dst_ip,src_port,dst_port,protocol,start_time,end_time,duration,packet_count,Avg Packet Size,Flow IAT Mean,Fwd Packet Length Max,Fwd Packets Length Total,Init Fwd Win Bytes,Init Bwd Win Bytes,Label,pred_binary_HAM,pred_3label_HAM,mode_HAM,pred_binary_FDM,pred_3label_FDM,mode_FDM,pred_binary_DFDM,pred_3label_DFDM,mode_DFDM
+10.2.2.1-10.3.0.2-49153-9000-17,10.2.2.1,10.3.0.2,49153,9000,17,13.850858,16.36325,2.512392,265,1030.0,0.009517,1030,272950,-1,-1,UDP-FLOOD,1,Malicious,HAM,1,Malicious,FDM,1,Malicious,DFDM
+10.2.4.1-10.3.0.2-49153-9000-17,10.2.4.1,10.3.0.2,49153,9000,17,13.852506,16.31153,2.459024,258,1030.0,0.009568,1030,265740,-1,-1,UDP-FLOOD,1,Malicious,HAM,1,Malicious,FDM,1,Malicious,DFDM
+10.1.1.1-10.3.0.2-49153-8080-6,10.1.1.1,10.3.0.2,49153,8080,6,13.852978,19.995818,6.14284,3702,404.0205,0.00166,590,1424850,32768,32768,Benign,0,Benign,HAM,0,Benign,FDM,0,Benign,DFDM
+10.1.4.1-10.3.0.2-49153-8080-6,10.1.4.1,10.3.0.2,49153,8080,6,13.85345,19.99157,6.13812,3653,403.8757,0.001681,590,1405380,32768,32768,Benign,0,Benign,HAM,0,Benign,FDM,0,Benign,DFDM
+10.2.8.1-10.3.0.2-49153-9000-17,10.2.8.1,10.3.0.2,49153,9000,17,13.855218,16.37409,2.518872,266,1030.0,0.009505,1030,273980,-1,-1,UDP-FLOOD,1,Malicious,HAM,1,Malicious,FDM,1,Malicious,DFDM

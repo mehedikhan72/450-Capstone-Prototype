@@ -1,0 +1,3 @@
+flow_id,src_ip,dst_ip,src_port,dst_port,protocol,start_time,end_time,duration,packet_count,Avg Packet Size,Flow IAT Mean,Fwd Packet Length Max,Fwd Packets Length Total,Init Fwd Win Bytes,Init Bwd Win Bytes,Label,pred_binary_HAM,pred_3label_HAM,mode_HAM,pred_binary_FDM,pred_3label_FDM,mode_FDM,pred_binary_DFDM,pred_3label_DFDM,mode_DFDM
+10.2.3.1-10.3.0.2-49153-9000-17,10.2.3.1,10.3.0.2,49153,9000,17,13.862754,16.401778,2.539024,275,1030.0,0.009267,1030,283250,-1,-1,UDP-FLOOD,1,Malicious,HAM,1,Malicious,FDM,1,Malicious,DFDM
+10.1.2.1-10.3.0.2-49153-8080-6,10.1.2.1,10.3.0.2,49153,8080,6,13.864874,19.999122,6.134248,3245,409.2296,0.001891,590,1268500,32768,32768,Benign,0,Benign,HAM,0,Benign,FDM,0,Benign,DFDM

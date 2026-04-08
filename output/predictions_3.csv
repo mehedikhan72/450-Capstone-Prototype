@@ -1,0 +1,6 @@
+flow_id,src_ip,dst_ip,src_port,dst_port,protocol,start_time,end_time,duration,packet_count,Avg Packet Size,Flow IAT Mean,Fwd Packet Length Max,Fwd Packets Length Total,Init Fwd Win Bytes,Init Bwd Win Bytes,Label,pred_binary_HAM,pred_3label_HAM,mode_HAM,pred_binary_FDM,pred_3label_FDM,mode_FDM,pred_binary_DFDM,pred_3label_DFDM,mode_DFDM
+10.2.4.1-10.3.0.2-49153-9000-17,10.2.4.1,10.3.0.2,49153,9000,17,6.127674,13.841434,7.71376,834,1030.0,0.00926,1030,859020,-1,-1,UDP-FLOOD,1,Malicious,HAM,1,Malicious,FDM,1,Malicious,DFDM
+10.2.6.1-10.3.0.2-49153-9000-17,10.2.6.1,10.3.0.2,49153,9000,17,6.184266,13.84709,7.662824,822,1030.0,0.009334,1030,846660,-1,-1,UDP-FLOOD,1,Malicious,HAM,1,Malicious,FDM,1,Malicious,DFDM
+10.2.7.1-10.3.0.2-49153-9000-17,10.2.7.1,10.3.0.2,49153,9000,17,6.206194,13.848738,7.642544,819,1030.0,0.009343,1030,843570,-1,-1,UDP-FLOOD,1,Malicious,HAM,1,Malicious,FDM,1,Malicious,DFDM
+10.2.8.1-10.3.0.2-49153-9000-17,10.2.8.1,10.3.0.2,49153,9000,17,6.315914,13.844498,7.528584,802,1030.0,0.009399,1030,826060,-1,-1,UDP-FLOOD,1,Malicious,HAM,1,Malicious,FDM,1,Malicious,DFDM
+10.2.1.1-10.3.0.2-49153-9000-17,10.2.1.1,10.3.0.2,49153,9000,17,6.326522,13.847914,7.521392,800,1030.0,0.009414,1030,824000,-1,-1,UDP-FLOOD,1,Malicious,HAM,1,Malicious,FDM,1,Malicious,DFDM
