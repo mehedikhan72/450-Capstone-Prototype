@@ -1,0 +1,67 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ddos
+      POSTGRES_USER: ddos
+      POSTGRES_PASSWORD: ddos
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ddos"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    ports:
+      - "15672:15672"  # management UI
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgresql+psycopg2://ddos:ddos@postgres:5432/ddos
+      CELERY_BROKER_URL: amqp://guest:guest@rabbitmq:5672//
+      INPUT_DIR: /app/input
+      OUTPUT_DIR: /app/output
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./input:/app/input
+      - ./output:/app/output
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: celery -A app.celery_app worker --loglevel=info --concurrency=1
+    environment:
+      DATABASE_URL: postgresql+psycopg2://ddos:ddos@postgres:5432/ddos
+      CELERY_BROKER_URL: amqp://guest:guest@rabbitmq:5672//
+      INPUT_DIR: /app/input
+      OUTPUT_DIR: /app/output
+    volumes:
+      - ./input:/app/input
+      - ./output:/app/output
+      - ./weights:/app/weights:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+volumes:
+  pgdata:

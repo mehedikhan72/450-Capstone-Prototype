@@ -1,0 +1,7 @@
+weights/
+input/*
+output/*
+!input/.gitkeep
+!output/.gitkeep
+__pycache__/
+*.pyc
