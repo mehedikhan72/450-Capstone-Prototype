@@ -56,7 +56,7 @@ services:
     volumes:
       - ./input:/app/input
       - ./output:/app/output
-      - ./weights:/app/weights:ro
+      - ./detection-engine/weights:/app/detection-engine/weights:ro
     depends_on:
       postgres:
         condition: service_healthy

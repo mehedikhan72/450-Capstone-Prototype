@@ -5,8 +5,11 @@ WORKDIR /app
 COPY requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY inference.py models.py config.py ./
+COPY detection-engine ./detection-engine
 COPY app ./app
+RUN mkdir -p detection-engine/output
+
+ENV PYTHONPATH=/app/detection-engine
 
 EXPOSE 8000
 
