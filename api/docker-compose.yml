@@ -33,7 +33,7 @@ services:
       INPUT_DIR: /app/input
       OUTPUT_DIR: /app/output
     ports:
-      - "8000:8000"
+      - "${API_PORT:-8000}:8000"
     volumes:
       - ./input:/app/input
       - ./output:/app/output
