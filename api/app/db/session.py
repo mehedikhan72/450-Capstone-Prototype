@@ -7,7 +7,7 @@ DATABASE_URL = os.environ.get(
     "DATABASE_URL", "postgresql+psycopg2://ddos:ddos@localhost:5432/ddos"
 )
 
-engine = create_engine(DATABASE_URL, future=True)
+engine = create_engine(DATABASE_URL, future=True, pool_pre_ping=True)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True)
 Base = declarative_base()
 
