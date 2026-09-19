@@ -286,6 +286,17 @@ def run_csv(csv_path=cfg.CSV_PATH, flow_rate=cfg.FLOW_RATE,
             if m != 'DFDM':
                 print('3-label metrics:')
                 res['metrics_3label'] = compute_metrics_3label(y, p_3l, mode_name=m)
+
+        # Per-base-model breakdown (pre-voting) — logging/study only, does not
+        # affect predictions_binary/predictions_3label or the saved CSV.
+        voter = VMFCVD_MODEL.fdm.voter if m in ('FDM', 'DFDM') else VMFCVD_MODEL.ham.voter
+        res['model_predictions'] = voter.individual_predictions(
+            X[FDM_FEATURES] if m in ('FDM', 'DFDM') else X[HAM_FEATURES])
+        if y is not None:
+            res['model_metrics'] = {
+                name: compute_metrics(y, preds, mode_name=f'{m}/{name}', verbose=False)
+                for name, preds in res['model_predictions'].items()
+            }
         all_res[m] = res
 
     df_out = df_raw.copy()

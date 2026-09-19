@@ -49,8 +49,12 @@ curl http://localhost:8000/jobs/<job_id>/result -o predictions.csv
 
 Returns the last 5 inference runs (most recent first), each with row count,
 modes run, per-mode prediction breakdown, binary/3-label metrics (when the
-CSV had a label column), and run duration. Appended to on every job, success
-or failure, by the worker.
+CSV had a label column), run duration, and a `models` breakdown — each base
+model in that mode's ensemble (e.g. AdaBoost/Bagging/GradientBoosting/
+RandomForest/ExtraTrees for HAM) with its own pre-voting predictions and
+accuracy. Appended to on every job, success or failure, by the worker. This
+is logging only — the ensemble's actual prediction/predictions.csv is
+unaffected.
 
 ```bash
 curl http://localhost:8000/logs/recent

@@ -52,6 +52,18 @@ def _prediction_summary(p_bin) -> dict:
     }
 
 
+def _model_breakdown(res: dict) -> dict:
+    preds_by_model = res.get("model_predictions") or {}
+    metrics_by_model = res.get("model_metrics") or {}
+    return {
+        name: {
+            "predictions": _prediction_summary(preds),
+            "metrics_binary": metrics_by_model.get(name),
+        }
+        for name, preds in preds_by_model.items()
+    }
+
+
 def run_prediction(job_id: str):
     session = SessionLocal()
     job = session.get(Job, job_id)
@@ -97,6 +109,7 @@ def run_prediction(job_id: str):
                 "predictions": _prediction_summary(res["predictions_binary"]),
                 "metrics_binary": res.get("metrics_binary"),
                 "metrics_3label": res.get("metrics_3label"),
+                "models": _model_breakdown(res),
             }
             for mode, res in all_res.items()
         }

@@ -300,6 +300,10 @@ class VMFCVDVoter:
             VD += model.predict(X).astype(float)
         return VD
 
+    def individual_predictions(self, X) -> dict:
+        """Each base model's own raw binary prediction, pre-voting. Logging/study use only."""
+        return {name: model.predict(X) for name, model in self.raw_models.items()}
+
     def predict_binary_from_vd(self, VD):
         return (VD >= self.MaxVoteIndex).astype(int)
 
@@ -481,7 +485,7 @@ class VMFCVD:
 # Metric helpers
 # ═════════════════════════════════════════════════════════════════════════════
 
-def compute_metrics(y_true, y_pred, mode_name='') -> dict:
+def compute_metrics(y_true, y_pred, mode_name='', verbose=True) -> dict:
     y_true = np.asarray(y_true).flatten()
     y_pred = np.asarray(y_pred).flatten()
     TP = int(((y_true==1)&(y_pred==1)).sum())
@@ -493,10 +497,11 @@ def compute_metrics(y_true, y_pred, mode_name='') -> dict:
     prec = TP/(TP+FP)           if TP+FP    else 0.
     rec  = TP/(TP+FN)           if TP+FN    else 0.
     f1   = 2*prec*rec/(prec+rec) if prec+rec else 0.
-    tag  = f'[{mode_name}] ' if mode_name else ''
-    print(f'{tag}Accuracy={acc:.6f}  Precision={prec:.6f}  '
-          f'Sensitivity={rec:.6f}  F1={f1:.6f}')
-    print(f'{tag}TP={TP}  TN={TN}  FP={FP}  FN={FN}')
+    if verbose:
+        tag = f'[{mode_name}] ' if mode_name else ''
+        print(f'{tag}Accuracy={acc:.6f}  Precision={prec:.6f}  '
+              f'Sensitivity={rec:.6f}  F1={f1:.6f}')
+        print(f'{tag}TP={TP}  TN={TN}  FP={FP}  FN={FN}')
     return dict(Accuracy=acc, Precision=prec, Sensitivity=rec, F1=f1,
                 TP=TP, TN=TN, FP=FP, FN=FN)
 
