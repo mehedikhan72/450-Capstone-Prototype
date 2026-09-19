@@ -45,6 +45,17 @@ Poll for the result.
 curl http://localhost:8000/jobs/<job_id>/result -o predictions.csv
 ```
 
+### `GET /logs/recent`
+
+Returns the last 5 inference runs (most recent first), each with row count,
+modes run, per-mode prediction breakdown, binary/3-label metrics (when the
+CSV had a label column), and run duration. Appended to on every job, success
+or failure, by the worker.
+
+```bash
+curl http://localhost:8000/logs/recent
+```
+
 ### `GET /health`
 
 Liveness check, returns `{"status": "ok"}`.
