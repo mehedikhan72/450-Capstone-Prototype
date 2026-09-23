@@ -11,7 +11,12 @@ class Job(Base):
 
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     status = Column(String, nullable=False, default="pending")  # pending|running|done|failed
-    flow_rate = Column(Integer, nullable=True)  # None=all modes, 0=HAM, 1000=FDM, 5000=DFDM
+    flow_rate = Column(Integer, nullable=True)  # MEASURED flows/s; None = run all three modes
+    # The switching rule this job ran under. NULL means "server defaults applied".
+    # Recorded per job because the ns-3 control frontend sets them per run, so a mode
+    # cannot be reconstructed from the rate alone.
+    flow_threshold_high = Column(Integer, nullable=True)
+    flow_threshold_extreme = Column(Integer, nullable=True)
     label_col = Column(String, nullable=True)
     benign_label = Column(String, nullable=True)
     input_filename = Column(String, nullable=False)

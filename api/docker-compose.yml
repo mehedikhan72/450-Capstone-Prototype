@@ -35,6 +35,10 @@ services:
       CELERY_BROKER_URL: amqp://guest:guest@rabbitmq:5672//
       INPUT_DIR: /app/input
       OUTPUT_DIR: /app/output
+      # Fallback switching rule, used when a request does not carry its own.
+      # The ns-3 control frontend sends thresholds per job, so these are defaults only.
+      FLOW_THRESHOLD_HIGH: "${FLOW_THRESHOLD_HIGH:-1000}"
+      FLOW_THRESHOLD_EXTREME: "${FLOW_THRESHOLD_EXTREME:-5000}"
     ports:
       - "${API_PORT:-8000}:8000"
     volumes:
@@ -57,6 +61,8 @@ services:
       CELERY_BROKER_URL: amqp://guest:guest@rabbitmq:5672//
       INPUT_DIR: /app/input
       OUTPUT_DIR: /app/output
+      FLOW_THRESHOLD_HIGH: "${FLOW_THRESHOLD_HIGH:-1000}"
+      FLOW_THRESHOLD_EXTREME: "${FLOW_THRESHOLD_EXTREME:-5000}"
     volumes:
       - ./input:/app/input
       - ./output:/app/output

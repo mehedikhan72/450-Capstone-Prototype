@@ -13,7 +13,15 @@ router = APIRouter(prefix="/jobs", tags=["jobs"])
 async def create_job(
     file: UploadFile = File(...),
     flow_rate: Optional[int] = Form(
-        None, description="0=HAM, 1000=FDM, 5000=DFDM. Omit to run all three modes."
+        None,
+        description="MEASURED flows/s. The mode follows from it via the thresholds "
+                    "below. Omit to run all three modes.",
+    ),
+    flow_threshold_high: Optional[int] = Form(
+        None, description="flows/s at or above which FDM replaces HAM. Server default if omitted."
+    ),
+    flow_threshold_extreme: Optional[int] = Form(
+        None, description="flows/s at or above which DFDM replaces FDM. Server default if omitted."
     ),
     label_col: Optional[str] = Form(
         "Label", description="Ground-truth column name, or empty if CSV is unlabeled."
@@ -21,7 +29,10 @@ async def create_job(
     benign_label: Optional[str] = Form("Benign"),
 ):
     try:
-        return job_service.create_job(file, flow_rate, label_col, benign_label)
+        return job_service.create_job(
+            file, flow_rate, label_col, benign_label,
+            flow_threshold_high, flow_threshold_extreme,
+        )
     except InvalidJobRequest as e:
         raise HTTPException(400, str(e))
 

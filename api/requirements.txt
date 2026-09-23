@@ -1,9 +1,15 @@
-# ML deps — pinned to match the training/pickle environment
+# ML deps — pinned to the TRIDENT v13 training environment.
+# These are read off the artefact itself: joblib.load(bundle)['schema']['env'].
+# Unpickling estimators across scikit-learn or LightGBM versions usually does not
+# raise; it returns an object that runs and answers slightly differently. The
+# engine warns loudly at startup if what is installed differs from what is recorded.
 numpy==2.0.2
 pandas==2.3.3
 scikit-learn==1.6.1
-scipy==1.13.1
+scipy==1.16.3
 joblib==1.5.3
+lightgbm==4.6.0          # the 'Boosting' member is an LGBMClassifier — required to unpickle
+shap==0.50.0             # not used at inference; pinned so the env matches training
 threadpoolctl==3.6.0
 psutil==7.2.2
 
