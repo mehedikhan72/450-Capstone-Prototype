@@ -1,6 +1,6 @@
 import os
 
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 DATABASE_URL = os.environ.get(
@@ -16,19 +16,32 @@ Base = declarative_base()
 # create_all() creates missing TABLES but never alters an existing one, so without
 # this a redeploy over a live volume would start and then fail on every insert.
 # ADD COLUMN IF NOT EXISTS is idempotent, so it is safe on a fresh database too.
-_MIGRATIONS = (
-    "ALTER TABLE jobs ADD COLUMN IF NOT EXISTS flow_threshold_high INTEGER",
-    "ALTER TABLE jobs ADD COLUMN IF NOT EXISTS flow_threshold_extreme INTEGER",
-)
+_JOB_COLUMNS = {
+    "flow_threshold_high": "INTEGER",
+    "flow_threshold_extreme": "INTEGER",
+    "model_version": "VARCHAR",
+    "worker_slot": "VARCHAR",
+}
 
 
 def init_db():
     from app.models.job import Job  # noqa: F401  registers the table on Base.metadata
+    from app.models.feedback import Annotation, Prediction  # noqa: F401
+    from app.models.lifecycle import (  # noqa: F401
+        DatasetSnapshot, DeploymentEvent, DeploymentState, ModelVersion, TrainingRun,
+    )
 
     Base.metadata.create_all(engine)
+    with SessionLocal() as session:
+        from app.models.lifecycle import DeploymentState
+        if session.get(DeploymentState, 1) is None:
+            session.add(DeploymentState(id=1, active_slot="blue"))
+            session.commit()
+    existing = {column["name"] for column in inspect(engine).get_columns("jobs")}
+    if_not_exists = "IF NOT EXISTS " if engine.dialect.name == "postgresql" else ""
     with engine.begin() as conn:
-        for stmt in _MIGRATIONS:
-            try:
-                conn.execute(text(stmt))
-            except Exception as e:      # non-fatal: log and continue, never block startup
-                print(f"[db] migration skipped ({stmt}): {e}")
+        for name, column_type in _JOB_COLUMNS.items():
+            if name not in existing:
+                conn.execute(text(
+                    f"ALTER TABLE jobs ADD COLUMN {if_not_exists}{name} {column_type}"
+                ))

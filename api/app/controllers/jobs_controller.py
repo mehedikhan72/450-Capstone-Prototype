@@ -44,12 +44,21 @@ def get_result(job_id: str):
         raise HTTPException(404, "job not found")
 
     if job.status in ("pending", "running"):
-        return JSONResponse(status_code=202, content={"job_id": job_id, "status": job.status})
+        return JSONResponse(status_code=202, content={
+            "job_id": job_id,
+            "status": job.status,
+            "model_version": job.model_version,
+        })
 
     if job.status == "failed":
         return JSONResponse(
             status_code=500,
-            content={"job_id": job_id, "status": "failed", "error": job.error_message},
+            content={
+                "job_id": job_id,
+                "status": "failed",
+                "model_version": job.model_version,
+                "error": job.error_message,
+            },
         )
 
     return FileResponse(

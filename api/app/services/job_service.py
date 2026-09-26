@@ -8,6 +8,7 @@ from fastapi import UploadFile
 from app.celery_app import celery_app
 from app.db.session import SessionLocal
 from app.models.job import Job
+from app.models.lifecycle import DeploymentState, ModelVersion
 
 INPUT_DIR = os.environ.get("INPUT_DIR", "/app/input")
 
@@ -59,6 +60,10 @@ def create_job(
 
     session = SessionLocal()
     try:
+        deployment = session.get(DeploymentState, 1)
+        slot = deployment.active_slot if deployment else "blue"
+        model = session.get(ModelVersion, deployment.current_model_id) if deployment and deployment.current_model_id else None
+        model_id = model.id if model else None
         job = Job(
             id=job_id,
             status="pending",
@@ -69,18 +74,22 @@ def create_job(
             input_path=input_path,
             flow_threshold_high=flow_threshold_high,
             flow_threshold_extreme=flow_threshold_extreme,
+            worker_slot=slot,
+            model_version=model_id,
         )
         session.add(job)
         session.commit()
     finally:
         session.close()
 
-    celery_app.send_task("run_prediction_job", args=[job_id])
+    celery_app.send_task("run_prediction_job", args=[job_id], queue=f"inference_{slot}")
     return {
         "job_id": job_id,
         "status": "pending",
         "flow_rate": flow_rate,
         "thresholds": {"high": high, "extreme": extreme},
+        "model_version": model_id,
+        "worker_slot": slot,
     }
 
 
