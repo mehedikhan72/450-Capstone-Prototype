@@ -18,7 +18,7 @@ services:
     image: rabbitmq:3-management-alpine
     restart: unless-stopped
     ports:
-      - "15672:15672"  # management UI
+      - "127.0.0.1:15672:15672"  # management UI, loopback only (single public port: the dashboard)
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 5s
@@ -41,8 +41,10 @@ services:
       FLOW_THRESHOLD_EXTREME: "${FLOW_THRESHOLD_EXTREME:-5000}"
       FEEDBACK_API_KEY: "${FEEDBACK_API_KEY:-}"
       BASE_DATASET_PATH: /data/DDoS_Dataset.zip
+    # Loopback only: the dashboard backend proxies /api/jobs,/api/feedback and
+    # /api/learning to this address; it is the single public port.
     ports:
-      - "${API_PORT:-8000}:8000"
+      - "127.0.0.1:${API_PORT:-8000}:8000"
     volumes:
       - ./input:/app/input
       - ./output:/app/output
