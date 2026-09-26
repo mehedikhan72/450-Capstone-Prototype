@@ -10,12 +10,21 @@ cd api
 docker compose up -d --build
 ```
 
-Starts Postgres, RabbitMQ, the API (`:8000`), blue/green inference workers, and
-a separate training worker. The inference workers load the bootstrap model once
-on startup (`detection-engine/weights/*.joblib` must be present — copy it in if
-missing; model artifacts are gitignored).
+Starts Postgres, RabbitMQ, the API (loopback-only `127.0.0.1:8000`), blue/green
+inference workers, and a separate training worker. The inference workers load the
+bootstrap model once on startup (`detection-engine/weights/*.joblib` must be
+present — copy it in if missing; model artifacts are gitignored).
 The training worker reads the repository-owned `data/DDoS_Dataset.zip` as the
 immutable base dataset and records its SHA-256 in every snapshot.
+
+## Single public port
+
+Nothing in this stack is published publicly. The dashboard backend (the
+`capstone` repo) is the only public port (default `:8765`): it serves the UI and
+proxies `/api/jobs`, `/api/feedback/*`, and `/api/learning/*` to this API over
+`127.0.0.1:8000` (`LEARNING_API_BASE`). The ns-3 controller targets the same
+port (`--api-base http://HOST:8765`). On a single-port host (Azure App Service
+etc.), expose only the dashboard port.
 
 ## Endpoints
 
