@@ -63,6 +63,7 @@ SCHEMA = dict(version='TRIDENT v13', build='v13.1 · SYNTHETIC test bundle',
 import __main__ as _m
 for nm in ('LinRegImputer','Pre','Member','Trident','DFDM'): setattr(_m, nm, getattr(M, nm))
 out = os.path.join(ENG, 'weights', 'trident_v13.joblib')
+os.makedirs(os.path.dirname(out), exist_ok=True)
 joblib.dump(dict(pre=pre_deploy, pre_deploy=pre_deploy, fdm=fdm, ham=ham, dfdm=dfdm,
                  schema=SCHEMA), out, compress=3)
 print('bundle written:', out, f'{os.path.getsize(out)/1024:.0f} KB')

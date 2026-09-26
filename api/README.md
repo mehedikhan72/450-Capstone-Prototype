@@ -1,6 +1,6 @@
 # DDoS Detection API
 
-FastAPI + Celery/RabbitMQ job queue around the VMFCVD detection model. Upload a
+FastAPI + Celery/RabbitMQ job queue around the TRIDENT detection model. Upload a
 flow CSV, poll for results.
 
 ## Run
@@ -10,9 +10,12 @@ cd api
 docker compose up -d --build
 ```
 
-Starts Postgres, RabbitMQ, the API (`:8000`), and a Celery worker. The worker
-loads the model once on startup (`detection-engine/weights/*.pkl` must be
-present — copy them in if missing, they're gitignored).
+Starts Postgres, RabbitMQ, the API (`:8000`), blue/green inference workers, and
+a separate training worker. The inference workers load the bootstrap model once
+on startup (`detection-engine/weights/*.joblib` must be present — copy it in if
+missing; model artifacts are gitignored).
+The training worker reads the repository-owned `data/DDoS_Dataset.zip` as the
+immutable base dataset and records its SHA-256 in every snapshot.
 
 ## Endpoints
 
@@ -23,7 +26,7 @@ Submit a CSV for detection. Multipart form:
 | field          | required | default   | notes                                              |
 |----------------|----------|-----------|-----------------------------------------------------|
 | `file`         | yes      | —         | the flow CSV                                       |
-| `flow_rate`    | no       | all modes | `0`=HAM, `1000`=FDM, `5000`=DFDM. Omit the field entirely for all three (don't send an empty string). |
+| `flow_rate`    | no       | all modes | measured flows/s; the configured thresholds select HAM/FDM/DFDM. Omit the field entirely for all three. |
 | `label_col`    | no       | `Label`   | ground-truth column name, if present                |
 | `benign_label` | no       | `Benign`  | value in `label_col` meaning "not an attack"        |
 
@@ -59,6 +62,42 @@ unaffected.
 ```bash
 curl http://localhost:8000/logs/recent
 ```
+
+### `GET /feedback/predictions`
+
+Returns prediction rows with their model version and latest human annotation.
+Supports `limit`, `offset`, and `review_status=all|reviewed|unreviewed`.
+Set `FEEDBACK_API_KEY` in the API environment to require the
+`X-Feedback-Key` header on feedback endpoints.
+
+### `POST /feedback/annotations`
+
+Appends immutable human labels. Ground truth is strictly `Benign` or
+`Malicious`; `Warning` is a model output, not a review label.
+
+```json
+{
+  "annotations": [{
+    "prediction_id": "...",
+    "label": "Malicious",
+    "reviewer": "operator@example.com",
+    "reason": "verified attack"
+  }]
+}
+```
+
+### Model learning
+
+- `GET /learning/status` — deployment, model, and recent training-run state.
+- `POST /learning/train` — freeze reviewed labels into a dataset snapshot and
+  queue a candidate retrain while the active slot keeps serving.
+- `POST /learning/models/{id}/promote` with `{"actor":"..."}` — atomically
+  route new jobs to a validated candidate and retain the old current as fallback.
+- `POST /learning/rollback` with `{"actor":"..."}` — reload and route to the
+  fallback without mutating the active model in place.
+
+New reviews after a run's cutoff are reserved for the next run. Candidates must
+pass locked-test MCC, recall, false-positive, and latency gates before promotion.
 
 ### `GET /health`
 

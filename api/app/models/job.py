@@ -22,6 +22,8 @@ class Job(Base):
     input_filename = Column(String, nullable=False)
     input_path = Column(String, nullable=False)
     output_path = Column(String, nullable=True)
+    model_version = Column(String, nullable=True, index=True)
+    worker_slot = Column(String, nullable=True)
     error_message = Column(Text, nullable=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(

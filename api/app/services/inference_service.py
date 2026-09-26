@@ -1,3 +1,4 @@
+import hashlib
 import os
 import shutil
 import sys
@@ -12,9 +13,11 @@ import models as _models
 
 from app.db.session import SessionLocal, init_db
 from app.models.job import Job
-from app.services import log_service
+from app.models.lifecycle import ModelVersion
+from app.services import feedback_service, log_service
 
 OUTPUT_DIR = os.environ.get("OUTPUT_DIR", "/app/output")
+MODEL_VERSION = None
 
 
 def _bind_main_module_classes():
@@ -36,11 +39,26 @@ def _bind_main_module_classes():
         setattr(main, name, getattr(_models, name))
 
 
-def load_model():
+def load_model(ckpt_path=None):
     """Load pickled model artifacts once per worker process (expensive)."""
     init_db()
     _bind_main_module_classes()
-    inf.load_artifacts()
+    global MODEL_VERSION
+    slot = os.environ.get("MODEL_SLOT")
+    slot_path = os.path.join(os.environ.get("MODEL_REGISTRY_DIR", "/registry"),
+                             "slots", slot or "", "model.joblib")
+    source = (ckpt_path or (slot_path if slot and os.path.isfile(slot_path) else None)
+              or os.environ.get("MODEL_BUNDLE_PATH") or inf.cfg.CKPT_DIR)
+    artifacts = inf.load_artifacts(source)
+    bundle_path = inf._find_bundle(source)
+    with open(bundle_path, "rb") as bundle:
+        full_digest = hashlib.sha256(bundle.read()).hexdigest()
+    digest = full_digest[:12]
+    schema = artifacts.get("schema") or {}
+    with SessionLocal() as session:
+        registered = session.query(ModelVersion).filter_by(artifact_sha256=full_digest).first()
+    MODEL_VERSION = registered.id if registered else f"bootstrap-{digest}"
+    print(f"[model] version={MODEL_VERSION}")
 
 
 def _prediction_summary(p_bin) -> dict:
@@ -80,11 +98,13 @@ def run_prediction(job_id: str):
         return
 
     job.status = "running"
+    job.model_version = MODEL_VERSION
     session.commit()
 
     t0 = time.perf_counter()
     log_entry = {
         "job_id": job_id,
+        "model_version": MODEL_VERSION,
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "input_filename": job.input_filename,
         "flow_rate": job.flow_rate,
@@ -116,6 +136,8 @@ def run_prediction(job_id: str):
             flow_threshold_high=job.flow_threshold_high,
             flow_threshold_extreme=job.flow_threshold_extreme,
         )
+        df_out["model_version"] = MODEL_VERSION
+        df_out.to_csv(inf.cfg.OUT_PATH, index=False)
 
         job_out_dir = os.path.join(OUTPUT_DIR, "jobs", job_id)
         os.makedirs(job_out_dir, exist_ok=True)
@@ -125,6 +147,8 @@ def run_prediction(job_id: str):
         job.output_path = dest
         job.status = "done"
         job.error_message = None
+
+        feedback_service.persist_predictions(job_id, MODEL_VERSION, df_out)
 
         log_entry["status"] = "done"
         log_entry["rows"] = len(df_out)
