@@ -19,12 +19,13 @@ immutable base dataset and records its SHA-256 in every snapshot.
 
 ## Single public port
 
-Nothing in this stack is published publicly. The dashboard backend (the
-`capstone` repo) is the only public port (default `:8765`): it serves the UI and
-proxies `/api/jobs`, `/api/feedback/*`, and `/api/learning/*` to this API over
-`127.0.0.1:8000` (`LEARNING_API_BASE`). The ns-3 controller targets the same
-port (`--api-base http://HOST:8765`). On a single-port host (Azure App Service
-etc.), expose only the dashboard port.
+Deployment topology: this stack runs on the Azure VM and its API port
+(`API_PORT`, default 8000) is the **only** public port. The dashboard,
+frontend, and ns-3 controller run locally: the local dashboard backend proxies
+`/api/jobs`, `/api/feedback/*`, and `/api/learning/*` to
+`LEARNING_API_BASE=http://<azure-host>:<port>`, and the controller can hit the
+same host directly (`--api-base`) or through the local dashboard port.
+RabbitMQ management is loopback-only.
 
 ## Endpoints
 
